@@ -1,79 +1,122 @@
+
 import java.util.Scanner;
 
-public class Budget 
-{
+// [CONCEPTS: Class, Constructor]
+class ExpenseManager {
+    // [CONCEPTS: Arrays, String, Data Types (double, int)]
+    private double[] expenses;
+    private String[] categories;
+    private double budget;
+    private int expenseCount;
 
-    public static void main(String[] args) 
-   
-    {    
-         String userName;double monthlyIncome;    
-        Scanner sc = new Scanner(System.in);
-
-        System.out.print("Enter your name: ");
-         userName = sc.nextLine();     
-
-        System.out.print("Enter your total monthly income -RS-> ");
-         monthlyIncome = sc.nextDouble();
-
-        String[] categories = {"Housing", "Food", "Transport", "Entertainment", "Utilities"};
-        double[] expenses = new double[categories.length];  
-
-        System.out.println("\n--- Enter your monthly expenses ---");
-        for (int i = 0; i < categories.length; i++)      
-        {
-            System.out.print(categories[i] + "-RS->");
-            expenses[i] = sc.nextDouble();
-        }
-
-        double totalExpenses = calculateTotal(expenses);
-        double netSavings = monthlyIncome - totalExpenses;
-
-        printReport(userName, monthlyIncome, totalExpenses, netSavings);
-        analyzeBudget(netSavings, monthlyIncome);
-
-        sc.close();
+    // [CONCEPT: Constructor]
+    
+    public ExpenseManager(int maxExpenses, double budget) {
+        this.expenses = new double[maxExpenses];
+        this.categories = new String[maxExpenses];
+        this.budget = budget;
+        this.expenseCount = 0;
     }
 
-    public static double calculateTotal(double[] expenseArray) 
-    {
+    // [CONCEPT: Method Overloading] 
+    
+    public void addExpense(double amount) {
+        // Defaults to "General" if no category is provided
+        addExpense(amount, "General"); 
+    }
+
+    // [CONCEPT: Method Overloading] 
+
+    public void addExpense(double amount, String category) {
+        if (expenseCount < expenses.length) {
+            expenses[expenseCount] = amount;
+            categories[expenseCount] = category;
+            expenseCount++;
+            System.out.println("Added: RS" + amount + " for " + category);
+        } else {
+            System.out.println("Expense list is full!");
+        }
+    }
+
+    // [CONCEPT: Methods]
+    
+    public double calculateTotalExpenses() {
         double total = 0;
-        for (double expense : expenseArray) 
-        {
-            total += expense;
+        for (int i = 0; i < expenseCount; i++) {
+            total += expenses[i];
         }
         return total;
     }
 
-    public static void printReport(String name, double income, double totalExpenses, double savings) 
-    {
-        System.out.println("\n==================================");
-        System.out.println("   BUDGET REPORT FOR: " + name.toUpperCase());
-        System.out.println("==================================");
-        System.out.printf("Total Monthly Income : $%.2f%n", income);
-        System.out.printf("Total Expenses       : $%.2f%n", totalExpenses);
-        System.out.printf("Net Monthly Savings  : $%.2f%n", savings);
-        System.out.println("----------------------------------");
-    }
+    // [CONCEPT: Methods]
+    
+    public void printReport() {
+        double total = calculateTotalExpenses();
+        double remaining = budget - total;
 
-    public static void analyzeBudget(double savings, double income) 
-    {
-        System.out.println("Financial Analysis:");
+        System.out.println("\n=== Monthly Expense Report ===");
+        System.out.println("Total Budget: RS" + budget);
+        System.out.println("------------------------------");
         
-        double savingsRate = (savings / income) * 100;
-
-        if (savings < 0)  
-        {
-            System.out.println(" WARNING: You are overspending! Your expenses exceed your income.");
-            System.out.println("Action Plan: Look closely at your non-essential expenses and cut back immediately.");
-        } else if (savingsRate >= 20.0) 
-        {
-            System.out.println(" EXCELLENT: You saved " + String.format("%.1f", savingsRate) + "% of your income!");
-            System.out.println("Action Plan: You are hitting the ideal 20% savings target. Consider investing these surplus funds.");
-        } else 
-        {
-            System.out.println(" GOOD START: You have a positive savings balance, but it is below the recommended 20% mark.");
-            System.out.println("Action Plan: Try optimizing minor categories like 'Entertainment' or 'Food' to boost your savings rate.");
+        for (int i = 0; i < expenseCount; i++) {
+            System.out.println(categories[i] + ": RS" + expenses[i]);
         }
-        System.out.println("==================================");
+        
+        System.out.println("------------------------------");
+        System.out.println("Total Spent: RS" + total);
+        
+        if (total > budget) {
+            System.out.println("Warning: You are over budget by RS" + Math.abs(remaining));
+        } else {
+            System.out.println("Great job! You stayed under budget. Remaining: RS" + remaining);
+        }
+    }
+}
+
+public class Budget {
+    public static void main(String[] args) {
+        // [CONCEPT: Scanner] 
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Welcome to the Monthly Budget Analyzer!");
+        System.out.print("Enter your total budget for the month: RS");
+        
+        // [CONCEPT: Data Types] 
+        double monthlyBudget = sc.nextDouble();
+        
+        System.out.print("How many expenses do you want to record? ");
+        int maxItems = sc.nextInt();
+        sc.nextLine(); 
+
+        
+        ExpenseManager manager = new ExpenseManager(maxItems, monthlyBudget);
+
+        for (int i = 0; i < maxItems; i++) {
+            System.out.print("\nEnter expense amount (or 0 to stop): RS");
+            double amount = sc.nextDouble();
+            
+            if (amount == 0) {
+                break; 
+            }
+            
+            sc .nextLine(); 
+            
+            System.out.print("Enter category (press Enter to leave blank): ");
+            // [CONCEPT: String] 
+            String category = sc.nextLine();
+
+            
+            if (category.trim().isEmpty()) {
+                manager.addExpense(amount); 
+            } else {
+                manager.addExpense(amount, category); 
+            }
+        }
+
+        
+        manager.printReport();
+
+    
+        sc.close();
     }
 }
