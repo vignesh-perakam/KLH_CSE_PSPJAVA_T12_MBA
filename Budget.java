@@ -1,122 +1,215 @@
-
 import java.util.Scanner;
 
-// [CONCEPTS: Class, Constructor]
-class ExpenseManager {
-    // [CONCEPTS: Arrays, String, Data Types (double, int)]
-    private double[] expenses;
-    private String[] categories;
-    private double budget;
-    private int expenseCount;
+// ============================================================================
+// MODULE 4:  INHERITANCE
+// Base class for an expense item
+// ============================================================================
+class Expense {
+    protected String title;
+    protected double amount;
 
-    // [CONCEPT: Constructor]
-    
-    public ExpenseManager(int maxExpenses, double budget) {
-        this.expenses = new double[maxExpenses];
-        this.categories = new String[maxExpenses];
-        this.budget = budget;
-        this.expenseCount = 0;
+    public Expense(String title, double amount) {
+        this.title = title;
+        this.amount = amount;
     }
 
-    // [CONCEPT: Method Overloading] 
-    
-    public void addExpense(double amount) {
-        // Defaults to "General" if no category is provided
-        addExpense(amount, "General"); 
+    public double getAmount() {
+        return amount;
     }
 
-    // [CONCEPT: Method Overloading] 
+    // Base method to be overridden
+    public String getDetails() {
+        return String.format("%-15s : ₹%.2f", title, amount);
+    }
+}
 
-    public void addExpense(double amount, String category) {
-        if (expenseCount < expenses.length) {
-            expenses[expenseCount] = amount;
-            categories[expenseCount] = category;
-            expenseCount++;
-            System.out.println("Added: RS" + amount + " for " + category);
+// ============================================================================
+// MODULE 4 (INHERITANCE) & MODULE 5 (CONSTRUCTOR OVERLOADING + METHOD OVERRIDING)
+// Subclass extending Expense using inheritance
+// ============================================================================
+class RecurringExpense extends Expense {
+    private String billingCycle;
+
+    // MODULE 5: Constructor Overloading (Constructor 1 - Default cycle)
+    public RecurringExpense(String title, double amount) {
+        super(title, amount);
+        this.billingCycle = "Monthly";
+    }
+
+    // MODULE 5: Constructor Overloading (Constructor 2 - Custom cycle)
+    public RecurringExpense(String title, double amount, String billingCycle) {
+        super(title, amount);
+        this.billingCycle = billingCycle;
+    }
+
+    // MODULE 5: Method Overriding (Overriding getDetails() from base class)
+    @Override
+    public String getDetails() {
+        return String.format("%-15s : ₹%.2f [Recurring - %s]", 
+                title, amount, billingCycle);
+    }
+}
+
+// ============================================================================
+// MAIN APPLICATION
+// ============================================================================
+public class Budget {
+
+    // MODULE 3: 1D Array for homogeneous record storage
+    private static final int MAX_EXPENSES = 50;
+    private Expense[] expenseList = new Expense[MAX_EXPENSES];
+    private int count = 0;
+
+    // Adds an expense to the array
+    public void addExpense(Expense exp) {
+        if (count < MAX_EXPENSES) {
+            expenseList[count] = exp;
+            count++;
+            System.out.println("[SUCCESS] Expense recorded successfully.");
         } else {
-            System.out.println("Expense list is full!");
+            System.out.println("[ERROR] Array limit reached! Cannot store more expenses.");
         }
     }
 
-    // [CONCEPT: Methods]
-    
-    public double calculateTotalExpenses() {
-        double total = 0;
-        for (int i = 0; i < expenseCount; i++) {
-            total += expenses[i];
+    // ========================================================================
+    // MODULE 2: USER-DEFINED METHODS
+    // Dedicated modular methods for arithmetic operations
+    // ========================================================================
+    public double computeTotalExpenses() {
+        double total = 0.0;
+        // MODULE 3: Array traversal
+        for (int i = 0; i < count; i++) {
+            total += expenseList[i].getAmount();
         }
         return total;
     }
 
-    // [CONCEPT: Methods]
-    
-    public void printReport() {
-        double total = calculateTotalExpenses();
-        double remaining = budget - total;
+    public double computeBalance(double income, double expenses) {
+        return income - expenses;
+    }
 
-        System.out.println("\n=== Monthly Expense Report ===");
-        System.out.println("Total Budget: RS" + budget);
-        System.out.println("------------------------------");
-        
-        for (int i = 0; i < expenseCount; i++) {
-            System.out.println(categories[i] + ": RS" + expenses[i]);
+    public double computeSavingsPercentage(double income, double balance) {
+        if (income <= 0) {
+            return 0.0;
         }
-        
-        System.out.println("------------------------------");
-        System.out.println("Total Spent: RS" + total);
-        
-        if (total > budget) {
-            System.out.println("Warning: You are over budget by RS" + Math.abs(remaining));
-        } else {
-            System.out.println("Great job! You stayed under budget. Remaining: RS" + remaining);
+        return (balance / income) * 100.0;
+    }
+
+    
+    public void displayAllExpenses() {
+        if (count == 0) {
+            System.out.println("[INFO] No transactions recorded.");
+            return;
+        }
+        System.out.println("\n--- Recorded Transactions ---");
+        for (int i = 0; i < count; i++) {
+            // Polymorphic call: executes base or overridden getDetails()
+            System.out.println(expenseList[i].getDetails());
         }
     }
-}
 
-public class Budget {
+    // Displays summary using Module 2 methods
+    public void printBudgetReport(double monthlyIncome) {
+        double totalExpenses = computeTotalExpenses();
+        double balance = computeBalance(monthlyIncome, totalExpenses);
+        double savingsRate = computeSavingsPercentage(monthlyIncome, balance);
+
+        System.out.println("\n---------------- BUDGET SUMMARY ----------------");
+        System.out.printf("Total Monthly Income : ₹%.2f\n", monthlyIncome);
+        System.out.printf("Total Expenses       : ₹%.2f\n", totalExpenses);
+        System.out.printf("Net Savings          : ₹%.2f (%.1f%% of income)\n", balance, savingsRate);
+        System.out.println("------------------------------------------------");
+    }
+
+    // ========================================================================
+    // MAIN METHOD (MODULE 1: SCANNER & DATA TYPES)
+    // ========================================================================
     public static void main(String[] args) {
-        // [CONCEPT: Scanner] 
-        Scanner sc = new Scanner(System.in);
-
-        System.out.println("Welcome to the Monthly Budget Analyzer!");
-        System.out.print("Enter your total budget for the month: RS");
-        
-        // [CONCEPT: Data Types] 
-        double monthlyBudget = sc.nextDouble();
-        
-        System.out.print("How many expenses do you want to record? ");
-        int maxItems = sc.nextInt();
-        sc.nextLine(); 
+        // MODULE 1: Scanner for console input
+        Scanner scanner = new Scanner(System.in);
 
         
-        ExpenseManager manager = new ExpenseManager(maxItems, monthlyBudget);
+        System.out.print("Enter your monthly income (₹): ");
+        double monthlySalary = scanner.nextDouble();
+        scanner.nextLine(); 
 
-        for (int i = 0; i < maxItems; i++) {
-            System.out.print("\nEnter expense amount (or 0 to stop): RS");
-            double amount = sc.nextDouble();
-            
-            if (amount == 0) {
-                break; 
-            }
-            
-            sc .nextLine(); 
-            
-            System.out.print("Enter category (press Enter to leave blank): ");
-            // [CONCEPT: String] 
-            String category = sc.nextLine();
+        
+        int choice = 0;
 
-            
-            if (category.trim().isEmpty()) {
-                manager.addExpense(amount); 
-            } else {
-                manager.addExpense(amount, category); 
+        Budget analyzer = new Budget();
+
+        while (choice != 6) {
+            System.out.println("\n=== Monthly Budget Analyzer ===");
+            System.out.println("1. Add One-Time Expense");
+            System.out.println("2. Add Recurring Expense ");
+            System.out.println("3. Display All Expenses ");
+            System.out.println("4. Generate Budget Summary ");
+            System.out.println("5. Update Monthly Income");
+            System.out.println("6. Exit");
+            System.out.print("Enter your choice (1-6): ");
+
+            choice = scanner.nextInt();
+            scanner.nextLine(); 
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter expense title: ");
+                    String title1 = scanner.nextLine();
+                    System.out.print("Enter amount: ");
+                    double amount1 = scanner.nextDouble();
+                    scanner.nextLine(); 
+
+                    analyzer.addExpense(new Expense(title1, amount1));
+                    break;
+
+                case 2:
+                    System.out.print("Enter recurring expense title: ");
+                    String title2 = scanner.nextLine();
+                    System.out.print("Enter amount: ");
+                    double amount2 = scanner.nextDouble();
+                    scanner.nextLine(); 
+
+                    System.out.print("Do you want to specify a billing cycle? (y/n): ");
+                    String specify = scanner.nextLine().trim();
+
+                    if (specify.equalsIgnoreCase("y")) {
+                        System.out.print("Enter billing cycle (e.g., Weekly, Quarterly): ");
+                        String cycle = scanner.nextLine();
+                        // MODULE 5: Overloaded constructor with 3 parameters
+                        analyzer.addExpense(new RecurringExpense(title2, amount2, cycle));
+                    } else {
+                        // MODULE 5: Overloaded constructor with 2 parameters (defaults to 'Monthly')
+                        analyzer.addExpense(new RecurringExpense(title2, amount2));
+                    }
+                    break;
+
+                case 3:
+                    // MODULE 5: Displays output through overridden getDetails()
+                    analyzer.displayAllExpenses();
+                    break;
+
+                case 4:
+                    // MODULE 2: Calls modular calculation methods
+                    analyzer.printBudgetReport(monthlySalary);
+                    break;
+
+                case 5:
+                    // MODULE 1: Re-prompting and updating primitive double
+                    System.out.print("Enter new monthly income (₹): ");
+                    monthlySalary = scanner.nextDouble();
+                    scanner.nextLine(); // Consume newline
+                    System.out.println("[SUCCESS] Monthly income updated to ₹" + monthlySalary);
+                    break;
+
+                case 6:
+                    System.out.println("Exiting application. Goodbye!");
+                    break;
+
+                default:
+                    System.out.println("[WARN] Invalid option. Enter a number between 1 and 6.");
             }
         }
 
-        
-        manager.printReport();
-
-    
-        sc.close();
+        scanner.close();
     }
 }
